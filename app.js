@@ -332,19 +332,33 @@
     setBtnLoading(btnEmail, true, 'Envoi…');
     const d = collectData();
 
-    // ── Path A : Discord webhook (preferred) ─────────────
+    console.log('🚀 Début de l\'envoi de la candidature…');
+    console.log('📋 Données collectées:', { discord: d.pseudo_discord, tiktok: d.pseudo_tiktok });
+
+    // ── Path A : Discord webhook (PRIORITÉ 1 — essayé EN PREMIER) ─────────────────────────────
     if (DISCORD_WEBHOOK && /^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(DISCORD_WEBHOOK)) {
+      console.log('🎯 Tentative 1: Envoi via Discord Webhook');
+      console.log('🔗 Webhook URL:', DISCORD_WEBHOOK.slice(0, 50) + '...');
       try {
         await sendToDiscord(d);
+        console.log('✅ SUCCÈS: Candidature envoyée via Discord Webhook');
         showSuccess('discord', d);
         return;
       } catch (err) {
-        console.warn('Discord webhook failed, falling back to email:', err);
+        console.error('❌ ERREUR Webhook Discord:', err);
+        console.error('📝 Message d\'erreur:', err.message);
         // continue to email
       }
+    } else {
+      console.warn('⚠️ WEBHOOK NON CONFIGURÉ:', {
+        webhook_vide: !DISCORD_WEBHOOK,
+        webhook_value: DISCORD_WEBHOOK ? DISCORD_WEBHOOK.slice(0, 50) + '...' : 'VIDE',
+        is_valid: /^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(DISCORD_WEBHOOK),
+      });
     }
 
-    // ── Path B : FormSubmit ──────────────────────────────
+    // ── Path B : FormSubmit (PRIORITÉ 2 — fallback email) ──────────────────────────
+    console.log('🎯 Tentative 2: Envoi via Email (FormSubmit)');
     try {
       const payload = {
         _subject: `Candidature modérateur — ${d.pseudo_discord}`,
@@ -372,9 +386,12 @@
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json.success === 'false') throw new Error(json.message || 'Le serveur a refusé la requête');
+      console.log('✅ SUCCÈS: Candidature envoyée via Email');
       showSuccess('email', d);
     } catch (err) {
-      console.error('All auto-send paths failed:', err);
+      console.error('❌ ERREUR Email:', err);
+      console.error('📝 Message d\'erreur:', err.message);
+      console.error('⚠️ TOUS LES ENVOIS ONT ÉCHOUÉ');
       setBtnLoading(btnEmail, false, '');
       showFallback(d, err);
     }
@@ -393,9 +410,10 @@
   // "simple" content type. We send the JSON in the `payload_json` form field.
   //
   async function sendToDiscord(d) {
+    console.log('🔄 Préparation des données Discord…');
     const pdfName = `candidature-${d.pseudo_discord.replace(/[^a-z0-9_-]/gi, '_')}.pdf`;
     let pdfBlob = null;
-    try { pdfBlob = await buildPdfBlob(d); } catch (e) { console.warn('PDF attach skipped:', e); }
+    try { pdfBlob = await buildPdfBlob(d); console.log('📄 PDF généré avec succès'); } catch (e) { console.warn('⚠️ PDF non généré:', e); }
 
     const attempts = [
       { label: 'V2 + cors',         build: () => buildV2Payload(d, pdfBlob, pdfName),      mode: 'cors' },
@@ -407,14 +425,16 @@
     let lastErr = null;
     for (const a of attempts) {
       try {
+        console.log(`  ↳ Tentative: ${a.label}…`);
         await postWebhook(a.build(), pdfBlob, pdfName, a.mode);
-        console.log(`✅ Discord send succeeded via: ${a.label}`);
+        console.log(`  ✅ SUCCÈS via: ${a.label}`);
         return;
       } catch (err) {
-        console.warn(`❌ ${a.label} failed:`, err.message);
+        console.warn(`  ❌ ${a.label} échoué:`, err.message);
         lastErr = err;
       }
     }
+    console.error('🔴 TOUTES LES TENTATIVES D\'ENVOI DISCORD ONT ÉCHOUÉ');
     throw lastErr || new Error('All Discord send attempts failed');
   }
 
@@ -563,6 +583,14 @@
   // Show a big helpful alert with two backup paths
   function showFallback(d, err) {
     const mailto = buildMailtoLink(d);
+    
+    // 🐛 Diagnostic info
+    const webhookStatus = DISCORD_WEBHOOK 
+      ? (DISCORD_WEBHOOK.includes('YOUR') ? '❌ Vide (template)' : '⚠️ Configuré mais échoué')
+      : '❌ Non configuré';
+    
+    const diagnosticInfo = `Webhook: ${webhookStatus} | Erreur: ${(err && err.message) ? err.message : 'réseau'}`;
+    
     alertBox.innerHTML = `
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 8v5M12 16h.01"/>
@@ -585,9 +613,16 @@
             <span>Télécharger en PDF</span>
           </button>
         </div>
-        <p style="margin: 12px 0 0; font-size: 12.5px; opacity: 0.75;">
-          (Détails techniques : ${(err && err.message) ? err.message : 'erreur réseau'})
-        </p>
+        <details style="margin-top: 12px; font-size: 11px; opacity: 0.7; cursor: pointer;">
+          <summary>📋 Détails techniques (pour le support)</summary>
+          <code style="display: block; background: #f0f0f0; padding: 8px; margin-top: 8px; border-radius: 4px; overflow-x: auto;">
+            ${diagnosticInfo}
+          </code>
+          <p style="margin-top: 8px;">
+            💡 <strong>Conseil :</strong> Ouvre la console JavaScript (F12) pour voir les détails d'erreur.<br/>
+            🔧 Si c'est un problème de configuration, contact l'admin du serveur.
+          </p>
+        </details>
       </div>`;
     alertBox.style.display = 'flex';
     // Wire up the inline "Télécharger en PDF" button
