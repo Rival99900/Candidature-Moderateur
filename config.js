@@ -70,7 +70,7 @@ window.MORPH_CANDIDATURE_CONFIG = {
     if (typeof window.__ENV__ !== 'undefined' && window.__ENV__.DISCORD_INVITE_URL) {
       return window.__ENV__.DISCORD_INVITE_URL;
     }
-    return 'https://discord.gg/J8MNwvgKSA'; // Valeur par défaut
+    return ''; // Valeur par défaut
   })(),
 
   // Adresse mail utilisée par le bouton « Ouvrir mon client mail » en cas
@@ -79,6 +79,6 @@ window.MORPH_CANDIDATURE_CONFIG = {
     if (typeof window.__ENV__ !== 'undefined' && window.__ENV__.TARGET_EMAIL) {
       return window.__ENV__.TARGET_EMAIL;
     }
-    return 'ervinlame3456@gmail.com'; // Valeur par défaut
+    return ''; // Valeur par défaut
   })(),
 };

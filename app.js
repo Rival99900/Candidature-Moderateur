@@ -847,7 +847,7 @@
         <h2>Vérifie ton compte Discord</h2>
         <p class="lead">
           Pour postuler, on a besoin de s'assurer que tu es bien <strong>membre du serveur</strong>.
-          Pas de compte créé, aucun mot de passe à donner — juste une autorisation à valider.
+          Pas de compte créé, aucun mot de passe à donner juste une autorisation à valider.
         </p>
         <button type="button" class="verify-btn-discord" id="verify-btn-login">
           ${DISCORD_LOGO_SVG}
