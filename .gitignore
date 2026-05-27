@@ -1,0 +1,32 @@
+# 🔐 Fichiers sensibles — à ABSOLUMENT ignorer
+.env
+.env.local
+.env.*.local
+
+# 🔧 Fichiers système
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# 📦 Dépendances
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 🗂️ Fichiers temporaires
+*.log
+*.tmp
+.cache/
+dist/
+build/
+
+# 🔐 Secrets génériques
+secrets.json
+credentials.json
+*.pem
+*.key
