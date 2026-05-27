@@ -289,6 +289,24 @@
   </p>
 </div>
 
+<!-- 🔐 Précharge les variables d'environnement (.env.json) AVANT config.js -->
+<script>
+  // XMLHttpRequest synchrone pour charger .env.json
+  // IMPORTANT: Cela doit s'exécuter AVANT config.js pour que window.__ENV__ soit disponible
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', '.env.json', false); // false = synchrone
+  try {
+    xhr.send();
+    if (xhr.status === 200) {
+      window.__ENV__ = JSON.parse(xhr.responseText);
+      console.log('✅ .env.json chargé avec succès (synchrone)');
+      console.log('📋 Webhook:', window.__ENV__.DISCORD_WEBHOOK ? '✓' : '✗');
+    }
+  } catch (e) {
+    console.warn('⚠️ .env.json non trouvé — utilisant les valeurs par défaut');
+  }
+</script>
+
 <!-- Config (webhook URL, email de secours, OAuth client id) -->
 <script src="config.js"></script>
 <!-- Discord OAuth2 verification (loads first to handle redirect hash) -->

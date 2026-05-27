@@ -15,53 +15,22 @@
 // Si plus tard tu mets un backend (Cloudflare Worker, Vercel function…), tu pourras
 // faire passer la requête par lui et garder le webhook côté serveur uniquement.
 
-// 🔐 Les valeurs sensibles sont maintenant dans .env ou .env.json
-// ⚠️ PRIORITÉ DE CHARGEMENT:
-//   1. window.__ENV__ (injecté par server.js)
-//   2. .env.json (fichier statique pour le dev local)
-//   3. Valeurs par défaut ci-dessous
+// 🔐 PRIORITÉ DE CHARGEMENT:
+//   1. window.__ENV__ (injecté par index.html depuis .env.json)
+//   2. Variables codées en dur (fallback sécurisé)
 
 (function () {
   'use strict';
 
-  // Cache global pour les variables d'environnement
-  window.__ENV_CACHE__ = null;
-  window.__ENV_LOADED__ = false;
-
-  // Précharge .env.json au démarrage (IIFE)
-  (async () => {
-    try {
-      const res = await fetch('.env.json');
-      if (res.ok) {
-        window.__ENV_CACHE__ = await res.json();
-        console.log('✅ .env.json chargé avec succès');
-      }
-    } catch (e) {
-      console.warn('⚠️ .env.json non trouvé (normal pour les déploiements)');
-    }
-    window.__ENV_LOADED__ = true;
-  })();
-
-  // Fonction helper pour obtenir une valeur d'env
-  window.getEnvVar = function (key, fallback) {
-    // 1. Cherche dans window.__ENV__ (injecté par le serveur Node.js)
-    if (typeof window.__ENV__ !== 'undefined' && window.__ENV__[key]) {
-      return window.__ENV__[key];
-    }
-    // 2. Cherche dans .env.json (développement local)
-    if (window.__ENV_CACHE__ && window.__ENV_CACHE__[key]) {
-      return window.__ENV_CACHE__[key];
-    }
-    // 3. Valeur par défaut
-    return fallback || '';
-  };
+  // Récupère les variables d'environnement (chargées synchronement par index.html)
+  const ENV = (typeof window.__ENV__ !== 'undefined') ? window.__ENV__ : {};
 
   // Configuration globale
   window.MORPH_CANDIDATURE_CONFIG = {
     // ─────────────────────────────────────────────────────────────
     //  URL du webhook Discord (essayé EN PREMIER)
     // ─────────────────────────────────────────────────────────────
-    DISCORD_WEBHOOK: window.getEnvVar('DISCORD_WEBHOOK', 'https://discord.com/api/webhooks/YOUR_WEBHOOK_ID_HERE'),
+    DISCORD_WEBHOOK: ENV.DISCORD_WEBHOOK || 'https://discord.com/api/webhooks/YOUR_WEBHOOK_ID_HERE',
 
     // ─────────────────────────────────────────────────────────────
     //  VÉRIFICATION DISCORD (anti-abus)
@@ -82,20 +51,21 @@
     //     6. (optionnel) Mets aussi l'URL du serveur Discord et un lien d'invitation
     //        pour le bouton « Rejoindre le serveur » qui s'affiche aux non-membres.
     // ─────────────────────────────────────────────────────────────
-    DISCORD_CLIENT_ID: window.getEnvVar('DISCORD_CLIENT_ID', '1206912988335046667'),
-    DISCORD_SERVER_ID: window.getEnvVar('DISCORD_SERVER_ID', '1425189368552751114'),
-    DISCORD_INVITE_URL: window.getEnvVar('DISCORD_INVITE_URL', 'https://discord.gg/J8MNwvgKSA'),
+    DISCORD_CLIENT_ID: ENV.DISCORD_CLIENT_ID || '1206912988335046667',
+    DISCORD_SERVER_ID: ENV.DISCORD_SERVER_ID || '1425189368552751114',
+    DISCORD_INVITE_URL: ENV.DISCORD_INVITE_URL || 'https://discord.gg/J8MNwvgKSA',
 
     // Adresse mail utilisée par le bouton « Ouvrir mon client mail » en cas
     // de panne du webhook (le candidat est redirigé vers son appli mail).
-    TARGET_EMAIL: window.getEnvVar('TARGET_EMAIL', 'ervinlame3456@gmail.com'),
+    TARGET_EMAIL: ENV.TARGET_EMAIL || 'ervinlame3456@gmail.com',
   };
 
   // 🐛 DEBUG: affiche la config chargée dans la console
+  const cfg = window.MORPH_CANDIDATURE_CONFIG;
   console.log('📋 Configuration chargée:', {
-    DISCORD_WEBHOOK: window.MORPH_CANDIDATURE_CONFIG.DISCORD_WEBHOOK ? '✓ défini' : '✗ MANQUANT!',
-    DISCORD_CLIENT_ID: window.MORPH_CANDIDATURE_CONFIG.DISCORD_CLIENT_ID ? '✓ défini' : '✗ MANQUANT!',
-    DISCORD_SERVER_ID: window.MORPH_CANDIDATURE_CONFIG.DISCORD_SERVER_ID ? '✓ défini' : '✗ MANQUANT!',
-    TARGET_EMAIL: window.MORPH_CANDIDATURE_CONFIG.TARGET_EMAIL ? '✓ défini' : '✗ MANQUANT!',
+    DISCORD_WEBHOOK: cfg.DISCORD_WEBHOOK.includes('YOUR') ? '✗ TEMPLATE (vide)' : '✓ chargé de .env.json',
+    DISCORD_CLIENT_ID: cfg.DISCORD_CLIENT_ID ? '✓ chargé' : '✗ MANQUANT',
+    DISCORD_SERVER_ID: cfg.DISCORD_SERVER_ID ? '✓ chargé' : '✗ MANQUANT',
+    TARGET_EMAIL: cfg.TARGET_EMAIL ? '✓ chargé' : '✗ MANQUANT',
   });
 })();
