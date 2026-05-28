@@ -1,0 +1,2 @@
+# Ce fichier indique à GitHub Pages de ne pas utiliser Jekyll
+# Cela permet de servir tous les fichiers, y compris .env.json, manifest.json, service-worker.js

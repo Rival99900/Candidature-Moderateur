@@ -1,0 +1,49 @@
+{
+  "name": "Candidature Modérateur GG Play Gaming Hub",
+  "short_name": "Candidature",
+  "description": "Postule pour devenir modérateur du serveur Discord GG Play Gaming Hub",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f1014",
+  "theme_color": "#5865f2",
+  "icons": [
+    {
+      "src": "assets/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/server-icon.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/favicon.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["productivity"],
+  "shortcuts": [
+    {
+      "name": "Candidature Modérateur",
+      "short_name": "Candidature",
+      "description": "Ouvrir le formulaire de candidature",
+      "url": "./index.html",
+      "icons": [
+        {
+          "src": "assets/favicon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

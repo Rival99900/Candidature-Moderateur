@@ -5,6 +5,24 @@
   'use strict';
 
   // ════════════════════════════════════════════════════════════════════
+  //  📱 MOBILE OPTIMIZATIONS
+  // ════════════════════════════════════════════════════════════════════
+  // Prevent viewport zoom on input focus (iOS)
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes');
+    }
+  }
+
+  // Improve touch performance
+  document.addEventListener('touchmove', function(e) {
+    if (e.target.closest('.scrollable')) {
+      return;
+    }
+  }, { passive: true });
+
+  // ════════════════════════════════════════════════════════════════════
   //  ⚙️  CONFIGURATION — lue depuis candidature/config.js
   //
   //  Le webhook + l'email sont définis dans config.js pour pouvoir les

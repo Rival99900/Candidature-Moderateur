@@ -3,14 +3,41 @@
 <head>
 <meta charset="utf-8" />
 <title>Candidature Modérateur — Discord</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<!-- 📱 Mobile Optimization -->
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes,viewport-fit=cover" />
+<meta name="theme-color" content="#5865f2" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Candidature" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
+
+<!-- 🔍 SEO & Description -->
 <meta name="description" content="Postule pour devenir modérateur du serveur Discord. Formulaire propre, envoi par email ou téléchargement en PDF." />
+<meta name="keywords" content="Discord,modérateur,candidature,GG Play" />
+<meta name="author" content="GG Play Gaming Hub" />
+
+<!-- 🎨 Icons & Branding -->
 <link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="shortcut icon" href="assets/favicon.png" />
 <link rel="apple-touch-icon" href="assets/server-icon.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/server-icon.png" />
+<link rel="manifest" href="manifest.json" />
+
+<!-- 🔗 Preconnect for performance -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+<link rel="dns-prefetch" href="https://unpkg.com" />
+<link rel="dns-prefetch" href="https://discord.com" />
+
+<!-- 📚 Stylesheets -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="style.css" />
+
+<!-- 🛡️ Security & Standards -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="color-scheme" content="dark" />
 </head>
 <body>
 
@@ -304,6 +331,21 @@
     }
   } catch (e) {
     console.warn('⚠️ .env.json non trouvé — utilisant les valeurs par défaut');
+  }
+</script>
+
+<!-- 🚀 Service Worker Registration (offline support) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js', { scope: './' })
+        .then((reg) => {
+          console.log('✅ Service Worker enregistré:', reg.scope);
+        })
+        .catch((err) => {
+          console.warn('⚠️ Service Worker error:', err.message);
+        });
+    });
   }
 </script>
 

@@ -626,6 +626,218 @@ body {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ════════════════════════════════════════════════════════════════ */
+/* 📱 MOBILE OPTIMIZATIONS — for iOS and Android                   */
+/* ════════════════════════════════════════════════════════════════ */
+
+/* Touch-friendly button sizing (minimum 48x48 iOS guidelines) */
+@media (max-width: 768px) {
+  .btn {
+    min-height: 48px;
+    padding: 12px 18px !important;
+    font-size: 15px;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: max(4px, .3em);
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input, textarea, select {
+    font-size: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 8px;
+  }
+
+  /* Better spacing for form fields on mobile */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  /* Better label visibility on mobile */
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  /* Improve select dropdown styling */
+  select {
+    width: 100%;
+    padding: 12px 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M3 4l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+  }
+
+  /* Reduce card padding on small screens */
+  .card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  /* Stack layout better on mobile */
+  .verified-banner {
+    flex-direction: column;
+  }
+
+  /* Better textarea on mobile */
+  textarea {
+    min-height: 100px;
+    line-height: 1.5;
+  }
+
+  /* Improve progress bar visibility */
+  .progress {
+    margin-bottom: 18px;
+    font-size: 11px;
+  }
+
+  /* Better button group layout */
+  .button-group, .verify-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .button-group .btn, .verify-buttons .btn {
+    width: 100%;
+  }
+
+  /* Improve modal on mobile */
+  .modal {
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+  }
+
+  /* Safe area support for notched devices */
+  .shell {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Extra small devices (iPhone SE, etc.) */
+@media (max-width: 360px) {
+  .hero h1 {
+    font-size: 24px;
+  }
+
+  .shell {
+    padding: 20px 12px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 10px 14px !important;
+  }
+
+  .input, .textarea {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+}
+
+/* Landscape mode optimizations */
+@media (max-height: 600px) and (orientation: landscape) {
+  .shell {
+    padding: 20px 16px;
+  }
+
+  .hero {
+    margin-bottom: 12px;
+  }
+
+  .hero h1 {
+    margin: 8px 0 6px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+}
+
+/* High DPI screens (2x pixel density) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Subtle optimization for retina displays */
+  body {
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+}
+
+/* Reduce animations on devices with prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dark mode optimization for OLED screens */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #000000;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .btn:hover {
+    background-color: inherit;
+    transform: none;
+  }
+
+  /* Make interactive elements more finger-friendly */
+  button, a, input[type="button"], input[type="submit"] {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  /* Remove focus outlines (they're visible enough on touch) */
+  :focus-visible {
+    outline: 2px solid var(--blurple);
+    outline-offset: 2px;
+  }
+}
+
+/* Orientation lock for small screens */
+@media (max-width: 480px) {
+  html {
+    /* Allow only portrait on very small devices */
+    orientation: portrait;
+  }
+}
+
+/* Print optimization */
+@media print {
+  body {
+    background: white;
+  }
+
+  .shell {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+
+  .btn, .verify-section {
+    display: none;
+  }
+}
 .alert .ic {
   width: 22px; height: 22px;
   flex-shrink: 0;

@@ -4,13 +4,19 @@ Application sécurisée de candidature Discord pour le serveur **Rivalité**.
 
 Fonctionne sur **GitHub Pages**, **Vercel**, **Netlify**, ou sur un serveur Node.js personnel.
 
-## 🔐 Sécurité Améliorée (Nouvelle Version)
+**🎉 Entièrement compatible iOS et Android!**
+
+## 🔐 Sécurité + 📱 Mobile Compatibility
 
 ✅ **Secrets protégés** — Variables sensibles dans `.env` (non commitées)  
 ✅ **`.gitignore`** — Empêche les fuites de données  
 ✅ **Serveur Node.js** — Injecte les variables côté serveur  
 ✅ **Webhook sécurisé** — Régénérable en 1 clic  
 ✅ **OAuth2 Discord** — Vérification des membres  
+✅ **Progressive Web App (PWA)** — Installable sur mobile (iOS & Android)  
+✅ **Service Worker** — Fonctionne hors-ligne + cache  
+✅ **Responsive Design** — Optimisé pour tous les écrans  
+✅ **Touch-Friendly** — Buttons 48x48px conformes aux standards  
 
 ## ⚙️ Fonctionnalités
 
@@ -20,7 +26,27 @@ Fonctionne sur **GitHub Pages**, **Vercel**, **Netlify**, ou sur un serveur Node
 - ✅ **PDF généré côté navigateur** (pdf-lib + Roboto Unicode) joint à chaque candidature
 - ✅ Mode dégradé `no-cors` automatique si le navigateur bloque le CORS
 - ✅ Bouton de secours **mailto** + **téléchargement PDF** si le webhook échoue
-- ✅ Compatible mobile, interface en FR
+- ✅ **Interface 100% responsive** — Desktop, tablette, mobile
+- ✅ **PWA installable** — Fonctionne comme une app native
+- ✅ **Support offline** — Fonctionne sans connexion Internet
+- ✅ **Optimisé pour notch (encoche)** — Support des devices à encoche (iPhone X+)
+- ✅ **Réduit motion** — Support des utilisateurs sensibles aux animations
+
+## 📱 Support Mobile
+
+### iOS (iPhone / iPad)
+- ✅ Safari 12+
+- ✅ Installation en tant qu'app (Add to Home Screen)
+- ✅ Support notch et Safe Area
+- ✅ Keyboard optimization
+- ✅ Haptic feedback compatible
+
+### Android
+- ✅ Chrome 90+
+- ✅ Firefox, Samsung Internet
+- ✅ Installation PWA (Google Play)
+- ✅ Full-screen mode support
+- ✅ Back button handling
 
 ## 🚀 Démarrage Rapide
 
@@ -60,11 +86,44 @@ Accède à `http://localhost:3000`
 |---------|-------------|
 | `.env` | 🔐 **SECRETS** — NE PAS COMMITER (webhook, keys) |
 | `.env.example` | 📋 Template de configuration |
-| `.gitignore` | 🚫 Fichiers à ignorer (`.env`, `node_modules/`) |
-| `config.js` | ⚙️ Configuration de l'app (charge depuis `.env`) |
-| `app.js` | 📱 Logique du formulaire |
+| `.env.json` | 📦 Fallback config pour GitHub Pages |
+| `.gitignore` | 🚫 Fichiers à ignorer |
+| `config.js` | ⚙️ Configuration de l'app |
+| `app.js` | 📱 Logique du formulaire + optimisations mobiles |
 | `verify.js` | 🛡️ Vérification Discord OAuth |
 | `server.js` | 🚀 Serveur Node.js |
+| **`manifest.json`** | 📲 **PWA Manifest** (installable sur mobile) |
+| **`service-worker.js`** | 🛡️ **Service Worker** (cache + offline) |
+| `style.css` | 🎨 Styles + media queries responsive |
+| `index.html` | 🌐 Structure HTML optimisée mobile |
+
+## 📱 Guide d'Installation PWA
+
+### Sur iPhone (iOS)
+1. Ouvre le lien dans **Safari**
+2. Clique le bouton **Partage** (carré avec flèche)
+3. Sélectionne **"Sur l'écran d'accueil"**
+4. Donne-lui un nom (ex: "Candidature")
+5. Clique **"Ajouter"**
+
+✅ L'app s'installe comme une app native!
+
+### Sur Android
+1. Ouvre le lien dans **Chrome** (ou navigateur compatible)
+2. Clique le menu ⋮ (trois points)
+3. Sélectionne **"Installer l'application"** ou **"Ajouter à l'écran d'accueil"**
+4. Confirme en cliquant **"Installer"**
+
+✅ L'app se lance en plein écran!
+
+## 🛡️ Fonctionnalités PWA (Progressive Web App)
+
+- 📲 **Installable** — Se comporte comme une app native
+- 🔌 **Offline** — Fonctionne sans connexion Internet
+- ⚡ **Rapide** — Service Worker met en cache les ressources
+- 🔔 **Notifications** — Support des notifications push (futur)
+- 🎨 **Responsive** — S'adapte à tous les écrans
+- 🖥️ **Standalone** — Mode plein écran sur mobile
 
 ## 🔧 Configuration Discord
 
