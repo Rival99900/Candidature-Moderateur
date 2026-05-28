@@ -30,7 +30,7 @@
     // ─────────────────────────────────────────────────────────────
     //  URL du webhook Discord (essayé EN PREMIER)
     // ─────────────────────────────────────────────────────────────
-    DISCORD_WEBHOOK: ENV.DISCORD_WEBHOOK || 'https://discord.com/api/webhooks/YOUR_WEBHOOK_ID_HERE',
+    DISCORD_WEBHOOK: ENV.DISCORD_WEBHOOK || 'https://discord.com/api/webhooks/1508428423654015037/1D-xkmpW9PwQwvvVYllzvkDSvt_dwpmuyjbGGSD_wiY0GbVdsC4A4ycghsinYMU81mk8',
 
     // ─────────────────────────────────────────────────────────────
     //  VÉRIFICATION DISCORD (anti-abus)
