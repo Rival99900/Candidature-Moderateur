@@ -13,7 +13,7 @@
   // ════════════════════════════════════════════════════════════════════
   const CFG = (window.MORPH_CANDIDATURE_CONFIG || {});
   const DISCORD_WEBHOOK = CFG.DISCORD_WEBHOOK || '';
-  const TARGET_EMAIL    = CFG.TARGET_EMAIL    || 'ervinlame3456@gmail.com';
+  const TARGET_EMAIL    = CFG.TARGET_EMAIL    || '';
   const FORMSUBMIT_ENDPOINT = `https://formsubmit.co/ajax/${TARGET_EMAIL}`;
 
   const $ = (sel) => document.querySelector(sel);
