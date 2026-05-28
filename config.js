@@ -53,11 +53,11 @@
     // ─────────────────────────────────────────────────────────────
     DISCORD_CLIENT_ID: ENV.DISCORD_CLIENT_ID || '1206912988335046667',
     DISCORD_SERVER_ID: ENV.DISCORD_SERVER_ID || '1425189368552751114',
-    DISCORD_INVITE_URL: ENV.DISCORD_INVITE_URL || 'https://discord.gg/J8MNwvgKSA',
+    DISCORD_INVITE_URL: ENV.DISCORD_INVITE_URL || '',
 
     // Adresse mail utilisée par le bouton « Ouvrir mon client mail » en cas
     // de panne du webhook (le candidat est redirigé vers son appli mail).
-    TARGET_EMAIL: ENV.TARGET_EMAIL || 'ervinlame3456@gmail.com',
+    TARGET_EMAIL: ENV.TARGET_EMAIL || '',
   };
 
   // 🐛 DEBUG: affiche la config chargée dans la console
