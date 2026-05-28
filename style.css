@@ -866,7 +866,11 @@ body {
 }
 .alert-actions .btn {
   font-size: 13px;
-  padding: 8px 14px;
+  padding: 10px 16px;
+  flex: 1;
+  min-width: 140px;
+  white-space: normal;
+  text-align: center;
 }
 .alert-actions .btn-primary {
   background: var(--red); color: white; border-color: var(--red);
@@ -877,3 +881,18 @@ body {
   background: white; color: var(--red); border-color: #ffb3b0;
 }
 .alert-actions .btn-ghost:hover { border-color: var(--red); background: #fff1f0; }
+
+/* Mobile: stack buttons vertically when they overflow */
+@media (max-width: 420px) {
+  .alert-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .alert-actions .btn {
+    width: 100%;
+    min-width: unset;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}

@@ -457,85 +457,130 @@
   }
 
   function buildV2Payload(d, pdfBlob, pdfName) {
+    // 🧩 COMPONENTS V2 — affichage riche avec FileBuilder intégré au container
+    // Voir: https://discord.com/developers/docs/components/display-components
+    
     const tr = (s, max) => {
       if (!s || s === '(rien)') return s || '—';
       return s.length <= max ? s : s.slice(0, max - 1) + '…';
     };
     const code = (s) => '```\n' + String(s || '—').replace(/```/g, '`\u200B``') + '\n```';
-    const tx = (content) => ({ type: 10, content });
-    const sp = (large) => ({ type: 14, divider: true, spacing: large ? 2 : 1 });
 
-    const profile = [
-      `## 👤  Profil`,
-      `**Pseudo Discord :** \`${d.pseudo_discord}\``,
-      `**Pseudo TikTok :** \`@${d.pseudo_tiktok}\``,
-      `**Date de naissance :** __${d.date_naissance_fr}__   *(${d.age} ans)*`,
-      `**Situation :** ${d.situation}`,
-      `**Connu via :** ${d.comment_connu}`,
-    ].join('\n');
-
-    const dispo = [
-      `## ⏱️  Disponibilités`,
-      `**${d.heures_semaine}** heures par semaine   ·   __${d.fuseau}__`,
-    ].join('\n');
-
-    const experience = `### 📜  Expérience en modération\n${code(tr(d.experience, 600))}`;
-    const whyMod     = `### 🛡️  Pourquoi modérateur ?\n${code(tr(d.pourquoi_moderateur, 600))}`;
-    const whyYou     = `### ⭐  Pourquoi moi et pas les autres ?\n${code(tr(d.pourquoi_vous_pas_les_autres, 600))}`;
-    const scenario   = `### 🎬  Mise en situation\n${code(tr(d.scenario, 700))}`;
-    const extra      = d.autres_remarques === '(rien)'
-      ? `### 💬  Autres remarques\n*(aucune remarque)*`
-      : `### 💬  Autres remarques\n${code(tr(d.autres_remarques, 350))}`;
-
-    // Identity block: Discord-verified user (if present)
+    // Données de base
     const v = d.verified;
-    const identityText = v
-      ? [
-          `## 🔒  Identité vérifiée`,
-          `**${v.displayName}**   *(@${v.username})*`,
-          `Discord ID : \`${v.id}\`   ·   __Membre confirmé du serveur__`,
-        ].join('\n')
-      : null;
+    const isVerified = v && v.id;
 
-    const footer = `-# 📎 *PDF complet en pièce jointe*  ·  🕒 \`${d.submitted_at_fr}\``;
+    // Construis les composants dans le container
+    const innerComponents = [];
 
-    const inner = [
-      tx(`# 🛡️  Nouvelle candidature modérateur`),
-    ];
-    // Add identity section with avatar thumbnail if verified
-    if (v && identityText) {
-      inner.push(sp(false));
-      inner.push({
-        type: 9, // Section
-        components: [tx(identityText)],
-        accessory: { type: 11, media: { url: v.avatarUrl } },
+    // ── Header ─────────────────────────────
+    innerComponents.push({
+      type: 10, // TextDisplay
+      content: '# 🛡️ Nouvelle candidature modérateur',
+    });
+
+    // ── Identity section (si vérifié) ─────
+    if (isVerified) {
+      innerComponents.push({ type: 14, divider: true, spacing: 1 }); // Separator
+      innerComponents.push({
+        type: 10,
+        content: [
+          `## 🔒 Identité vérifiée`,
+          `**${v.displayName}**  ·  *@${v.username}*`,
+          `Discord ID: \`${v.id}\`  ·  __Membre confirmé__`,
+        ].join('\n'),
       });
     }
-    inner.push(
-      sp(false),
-      tx(profile),
-      sp(false),
-      tx(dispo),
-      sp(true),
-      tx(experience),
-      sp(false),
-      tx(whyMod),
-      sp(false),
-      tx(whyYou),
-      sp(false),
-      tx(scenario),
-      sp(false),
-      tx(extra),
-      sp(false),
-      tx(footer),
-    );
-    if (pdfBlob) inner.push({ type: 13, file: { url: `attachment://${pdfName}` } });
 
+    // ── Profile section ────────────────────
+    innerComponents.push({ type: 14, divider: true, spacing: 2 });
+    innerComponents.push({
+      type: 10,
+      content: [
+        `## 👤 Profil`,
+        `**Pseudo Discord:** \`${d.pseudo_discord}\``,
+        `**Pseudo TikTok:** \`@${d.pseudo_tiktok}\``,
+        `**Date de naissance:** ${d.date_naissance_fr} (${d.age} ans)`,
+        `**Situation:** ${d.situation}`,
+        `**Connu via:** ${d.comment_connu}`,
+      ].join('\n'),
+    });
+
+    // ── Disponibilités ─────────────────────
+    innerComponents.push({ type: 14, divider: true, spacing: 1 });
+    innerComponents.push({
+      type: 10,
+      content: `## ⏱️ Disponibilités\n**${d.heures_semaine} h/sem** · ${d.fuseau}`,
+    });
+
+    // ── Experience ────────────────────────
+    innerComponents.push({ type: 14, divider: true, spacing: 1 });
+    innerComponents.push({
+      type: 10,
+      content: `### 📜 Expérience en modération\n${code(tr(d.experience, 800))}`,
+    });
+
+    // ── Pourquoi modérateur ───────────────
+    innerComponents.push({ type: 14, divider: true, spacing: 1 });
+    innerComponents.push({
+      type: 10,
+      content: `### 🛡️ Pourquoi modérateur ?\n${code(tr(d.pourquoi_moderateur, 800))}`,
+    });
+
+    // ── Pourquoi toi ──────────────────────
+    innerComponents.push({ type: 14, divider: true, spacing: 1 });
+    innerComponents.push({
+      type: 10,
+      content: `### ⭐ Pourquoi toi et pas les autres ?\n${code(tr(d.pourquoi_vous_pas_les_autres, 800))}`,
+    });
+
+    // ── Mise en situation ──────────────────
+    innerComponents.push({ type: 14, divider: true, spacing: 1 });
+    innerComponents.push({
+      type: 10,
+      content: `### 🎬 Mise en situation\n${code(tr(d.scenario, 900))}`,
+    });
+
+    // ── Autres remarques ───────────────────
+    innerComponents.push({ type: 14, divider: true, spacing: 1 });
+    const remarques = d.autres_remarques === '(rien)' 
+      ? '*(aucune remarque)*'
+      : code(tr(d.autres_remarques, 500));
+    innerComponents.push({
+      type: 10,
+      content: `### 💬 Autres remarques\n${remarques}`,
+    });
+
+    // ── Footer ─────────────────────────────
+    innerComponents.push({ type: 14, divider: true, spacing: 2 });
+    innerComponents.push({
+      type: 10,
+      content: `-# 🕒 Envoyé le ${d.submitted_at_fr}`,
+    });
+
+    // ── PDF FILE — INSIDE THE CONTAINER (Components V2) ──
+    if (pdfBlob) {
+      innerComponents.push({ type: 14, divider: true, spacing: 1 });
+      innerComponents.push({
+        type: 13, // File Display Component
+        url: `attachment://${pdfName}`,
+      });
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // Construit le payload Components V2 final
+    // ════════════════════════════════════════════════════════════
     return {
       username: 'Candidatures Modérateur',
-      flags: 32768, // IsComponentsV2
+      flags: 32768, // MessageFlags.IsComponentsV2
       allowed_mentions: { parse: [] },
-      components: [{ type: 17, accent_color: 0x5865F2, components: inner }],
+      components: [
+        {
+          type: 17, // Container
+          accent_color: 0x5865F2,
+          components: innerComponents,
+        },
+      ],
       attachments: pdfBlob ? [{ id: 0, filename: pdfName }] : [],
     };
   }

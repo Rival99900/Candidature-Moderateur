@@ -230,4 +230,4 @@ candidature/
 
 ---
 
-Fait avec patience par et pour le staff de **GG Play Gaming Hub** 🎮
+Fait avec patience par et pour le staff de **Rivalité** 🎮
