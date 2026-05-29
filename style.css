@@ -384,9 +384,6 @@ body {
   border-color: var(--red);
   background-color: #fdf4f3;
 }
-.select:not(:has(option:checked[value=""])):not([data-empty="1"]) {
-  /* style as filled */
-}
 .select option[disabled] { color: var(--muted); }
 
 /* Input with unit suffix (e.g. "h/sem") */
@@ -863,9 +860,10 @@ body {
 
 /* Orientation lock for small screens */
 @media (max-width: 480px) {
-  html {
-    /* Allow only portrait on very small devices */
-    orientation: portrait;
+  /* Note: CSS orientation property is not valid — use device/browser settings */
+  .shell {
+    width: 100%;
+    max-width: 100%;
   }
 }
 
