@@ -513,32 +513,59 @@
   // no-cors only works because Discord accepts multipart/form-data which is a
   // "simple" content type. We send the JSON in the `payload_json` form field.
   //
+  // ─── DISCORD WEBHOOK — Embed classique (fiable) ─────────────────────
+  //
+  // L'embed classique est bien plus fiable que les Components V2 via webhook
+  // depuis un site statique. On envoie DEUX messages à la suite :
+  //   1. L'embed (sans pièce jointe) — c'est le contenu principal.
+  //   2. Le PDF seul — il apparaît ainsi SOUS l'embed dans le salon
+  //      (Discord affiche les pièces jointes AU-DESSUS de l'embed d'un même
+  //       message ; un second message place donc le fichier en dessous).
+  //
+  // Chaque envoi tente CORS d'abord (réponse lisible), puis no-cors en secours.
+  //
   async function sendToDiscord(d) {
     console.log('🔄 Préparation des données Discord…');
     const pdfName = `candidature-${d.pseudo_discord.replace(/[^a-z0-9_-]/gi, '_')}.pdf`;
     let pdfBlob = null;
     try { pdfBlob = await buildPdfBlob(d); console.log('📄 PDF généré avec succès'); } catch (e) { console.warn('⚠️ PDF non généré:', e); }
 
-    // 🧩 COMPONENTS V2 ONLY — pas de fallback classic (EmbedBuilder)
-    const attempts = [
-      { label: 'Components V2 + CORS',    build: () => buildV2Payload(d, pdfBlob, pdfName), mode: 'cors' },
-      { label: 'Components V2 + no-cors', build: () => buildV2Payload(d, pdfBlob, pdfName), mode: 'no-cors' },
-    ];
+    // 1) Embed classique SANS fichier (contenu principal) ───────────────
+    const embedPayload = buildClassicPayload(d);
+    await postWithFallback(embedPayload, null, null, 'Embed classique');
 
-    let lastErr = null;
-    for (const a of attempts) {
+    // 2) PDF dans un SECOND message → s'affiche SOUS l'embed ─────────────
+    if (pdfBlob) {
+      const filePayload = {
+        username: 'Candidatures Modérateur',
+        content: `📎 **PDF complet — ${d.pseudo_discord}**`,
+        allowed_mentions: { parse: [] },
+        attachments: [{ id: 0, filename: pdfName }],
+      };
       try {
-        console.log(`  ↳ Tentative: ${a.label}…`);
-        await postWebhook(a.build(), pdfBlob, pdfName, a.mode);
-        console.log(`  ✅ SUCCÈS via: ${a.label}`);
+        await postWithFallback(filePayload, pdfBlob, pdfName, 'PDF (2e message)');
+      } catch (err) {
+        // L'embed est déjà passé : on n'échoue pas la candidature pour le PDF.
+        console.warn('⚠️ PDF non envoyé en second message (embed déjà envoyé):', err.message);
+      }
+    }
+  }
+
+  // Envoie un payload : tente CORS (réponse lisible) puis no-cors (secours).
+  async function postWithFallback(payload, pdfBlob, pdfName, label) {
+    let lastErr = null;
+    for (const mode of ['cors', 'no-cors']) {
+      try {
+        console.log(`  ↳ ${label} — tentative ${mode}…`);
+        await postWebhook(payload, pdfBlob, pdfName, mode);
+        console.log(`  ✅ ${label} envoyé (${mode})`);
         return;
       } catch (err) {
-        console.warn(`  ❌ ${a.label} échoué:`, err.message);
+        console.warn(`  ❌ ${label} (${mode}) échoué:`, err.message);
         lastErr = err;
       }
     }
-    console.error('🔴 LES TENTATIVES COMPONENTS V2 ONT ÉCHOUÉ');
-    throw lastErr || new Error('All Discord V2 send attempts failed');
+    throw lastErr || new Error(`${label} : toutes les tentatives ont échoué`);
   }
 
   function buildV2Payload(d, pdfBlob, pdfName) {
@@ -708,13 +735,13 @@
     }
   }
 
-  function buildClassicPayload(d, pdfBlob, pdfName) {
+  function buildClassicPayload(d) {
     const tr = (s, max) => (!s || s === '(rien)') ? (s || '—') : (s.length <= max ? s : s.slice(0, max - 1) + '…');
     const v = d.verified;
     const embed = {
       author: v
         ? { name: `${v.displayName} · vérifié`, icon_url: v.avatarUrl }
-        : { name: '🛡️ Nouvelle candidature modérateur' },
+        : { name: '🛡️ **Nouvelle candidature modérateur**' },
       title: d.pseudo_discord,
       color: 0x5865F2,
       thumbnail: v ? { url: v.avatarUrl } : undefined,
@@ -727,20 +754,22 @@
         `**Disponibilités :** ${d.heures_semaine} h/sem · ${d.fuseau}`,
       ].filter(Boolean).join('\n'),
       fields: [
-        { name: '📜 Expérience en modération',         value: '```\n' + tr(d.experience, 950) + '\n```',                    inline: false },
-        { name: '🛡️ Pourquoi modérateur ?',           value: '```\n' + tr(d.pourquoi_moderateur, 950) + '\n```',           inline: false },
-        { name: '⭐ Pourquoi moi et pas les autres ?', value: '```\n' + tr(d.pourquoi_vous_pas_les_autres, 950) + '\n```',  inline: false },
-        { name: '🎬 Mise en situation',                value: '```\n' + tr(d.scenario, 950) + '\n```',                      inline: false },
-        { name: '💬 Autres remarques',                 value: d.autres_remarques === '(rien)' ? '*(aucune remarque)*' : '```\n' + tr(d.autres_remarques, 950) + '\n```', inline: false },
+        { name: '📜 **Expérience en modération**',         value: '```\n' + tr(d.experience, 950) + '\n```',                    inline: false },
+        { name: '🛡️ **Pourquoi modérateur ?**',           value: '```\n' + tr(d.pourquoi_moderateur, 950) + '\n```',           inline: false },
+        { name: '⭐ **Pourquoi moi et pas les autres ?**', value: '```\n' + tr(d.pourquoi_vous_pas_les_autres, 950) + '\n```',  inline: false },
+        { name: '🎬 **Mise en situation**',                value: '```\n' + tr(d.scenario, 950) + '\n```',                      inline: false },
+        { name: '💬 **Autres remarques**',                 value: d.autres_remarques === '(rien)' ? '*(aucune remarque)*' : '```\n' + tr(d.autres_remarques, 950) + '\n```', inline: false },
       ],
-      footer: { text: '📎 PDF complet en pièce jointe · Candidature Modérateur' },
+      footer: { text: '📎 PDF complet ci-dessous · Candidature Modérateur' },
       timestamp: new Date().toISOString(),
     };
     return {
       username: 'Candidatures Modérateur',
       allowed_mentions: { parse: [] },
       embeds: [embed],
-      attachments: pdfBlob ? [{ id: 0, filename: pdfName }] : [],
+      // Pas de pièce jointe ici : le PDF part dans un second message
+      // pour s'afficher SOUS l'embed.
+      attachments: [],
     };
   }
 
