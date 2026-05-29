@@ -500,7 +500,16 @@ body {
   align-items: center;
 }
 @media (max-width: 540px) {
-  .actions .btn { flex: 1; justify-content: center; }
+  .actions {
+    flex-direction: column;
+  }
+  .actions .btn { 
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    padding: 14px 16px;
+  }
 }
 
 .btn {
