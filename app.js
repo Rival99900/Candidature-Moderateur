@@ -656,32 +656,33 @@
     // on rogne le plus gros Text Display jusqu'à repasser sous le seuil.
     enforceTextBudget(innerComponents, 3900);
 
-    // ── PDF FILE — INSIDE THE CONTAINER (Components V2) ──
-    // ✅ Structure correcte : objet `file` imbriqué avec `url`,
-    //    et NON une propriété `url` au premier niveau.
+    // ════════════════════════════════════════════════════════════
+    // Construit le payload Components V2 final
+    //
+    // ⚠️ Le composant File (type 13) est placé en COMPOSANT DE PREMIER
+    //    NIVEAU (frère du Container), PAS à l'intérieur du Container.
+    //    Un File imbriqué dans un Container via webhook fait planter
+    //    Discord (HTTP 500). En frère du container, ça passe.
+    // ════════════════════════════════════════════════════════════
+    const topComponents = [
+      {
+        type: 17, // Container
+        accent_color: 0x5865F2,
+        components: innerComponents,
+      },
+    ];
     if (pdfBlob) {
-      innerComponents.push({ type: 14, divider: true, spacing: 1 });
-      innerComponents.push({
-        type: 13, // File Display Component
+      topComponents.push({
+        type: 13, // File Display Component (premier niveau)
         file: { url: `attachment://${pdfName}` },
-        spoiler: false,
       });
     }
 
-    // ════════════════════════════════════════════════════════════
-    // Construit le payload Components V2 final
-    // ════════════════════════════════════════════════════════════
     return {
       username: 'Candidatures Modérateur',
       flags: 32768, // MessageFlags.IsComponentsV2
       allowed_mentions: { parse: [] },
-      components: [
-        {
-          type: 17, // Container
-          accent_color: 0x5865F2,
-          components: innerComponents,
-        },
-      ],
+      components: topComponents,
       attachments: pdfBlob ? [{ id: 0, filename: pdfName }] : [],
     };
   }

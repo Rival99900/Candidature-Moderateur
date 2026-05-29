@@ -71,7 +71,6 @@ body {
   font-size: 13px; font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--surface);
-  backdrop-filter: blur(8px);
 }
 .brand-server {
   width: 28px; height: 28px; border-radius: 50%;
@@ -860,7 +859,6 @@ body {
 
 /* Orientation lock for small screens */
 @media (max-width: 480px) {
-  /* Note: CSS orientation property is not valid — use device/browser settings */
   .shell {
     width: 100%;
     max-width: 100%;
@@ -986,22 +984,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
   from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes bg-drift {
-  0%, 100% { background-position: 0% 0%, 100% 100%, 0 0; }
-  50%      { background-position: 6% 4%, 94% 96%, 0 0; }
-}
-@keyframes progress-shimmer {
-  0%       { transform: translateX(-100%); }
-  60%,100% { transform: translateX(220%); }
-}
 
-/* slow, calm drift of the ambient background glow */
-body {
-  background-size: 160% 160%, 160% 160%, auto;
-  animation: bg-drift 26s ease-in-out infinite;
-}
-
-/* page-load choreography */
+/* page-load choreography (ces animations ne tournent QU'UNE fois) */
 .hero .brand { animation: hero-in .50s ease-out both; }
 .hero h1     { animation: hero-in .55s ease-out .06s both; }
 .hero p      { animation: hero-in .60s ease-out .12s both; }
@@ -1010,28 +994,14 @@ body {
 /* gentle group fade-up of the form once verification passes */
 #form-section:not([hidden]) { animation: rise-in .50s ease-out .05s both; }
 
-/* animated progress bar shimmer */
-.progress-bar > div { position: relative; overflow: hidden; }
-.progress-bar > div::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
-  transform: translateX(-100%);
-  animation: progress-shimmer 2.4s ease-in-out infinite;
-}
-
-/* inputs nudge up a hair on focus for tactile feedback */
-.input:focus, .textarea:focus, .select:focus { transform: translateY(-1px); }
-.input, .textarea, .select { transition: border-color .15s, background .15s, box-shadow .15s, transform .15s; }
-
-/* section pill subtle pop */
+/* section pill subtle pop (uniquement au survol — desktop, peu coûteux) */
 .section-divider span { transition: transform .15s ease, box-shadow .15s ease; }
 .section-divider:hover span { transform: translateY(-1px); box-shadow: 0 6px 14px -8px rgba(88,101,242,.5); }
 
 /* logout / "ce n'est pas moi" feedback */
 .vb-logout:active { transform: scale(.96); }
 
-/* On touch devices, drop the focus lift so the keyboard doesn't feel jumpy */
+/* On touch devices, drop hover lifts so the keyboard ne saute pas */
 @media (hover: none) and (pointer: coarse) {
-  .input:focus, .textarea:focus, .select:focus { transform: none; }
   .btn-primary:hover, .btn-ghost:hover, .verify-btn-discord:hover { transform: none; }
 }
