@@ -106,6 +106,13 @@
 
       <form id="cand-form" novalidate>
 
+      <!-- 🛡️ Anti-bot honeypot — invisible field. Real users never fill it;
+           bots that auto-fill every input get caught. Do NOT remove. -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="hp-website">Ne pas remplir ce champ</label>
+        <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
       <!-- ── SECTION : PROFIL ───────────────────────────── -->
       <div class="section-divider"><span>Profil</span></div>
 

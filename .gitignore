@@ -31,16 +31,3 @@ secrets.json
 credentials.json
 *.pem
 *.key
-
-# 🗂️ Fichiers temporaires
-*.log
-*.tmp
-.cache/
-dist/
-build/
-
-# 🔐 Secrets génériques
-secrets.json
-credentials.json
-*.pem
-*.key

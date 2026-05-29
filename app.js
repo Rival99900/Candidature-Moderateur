@@ -107,6 +107,73 @@
 
   const REQUIRED = ['discord','tiktok','dob','situation','knew','hours','tz','exp','why_mod','why_you','scenario'];
 
+  // ════════════════════════════════════════════════════════════════════
+  //  🛡️ PROTECTIONS — anti-bot / anti-spam / anti double-envoi
+  // ════════════════════════════════════════════════════════════════════
+  const PROTECT = {
+    hp:        document.querySelector('#hp-website'), // honeypot (champ piège)
+    loadedAt:  Date.now(),                            // horodatage de chargement
+    minDelayMs: 4000,                                 // un humain met > 4s à remplir
+    cooldownMs: 60 * 1000,                            // 60s entre deux envois
+    sending:   false,                                 // verrou anti double-clic
+    COOLDOWN_KEY: 'morph_candidature_last_send',
+  };
+
+  // Nettoie une chaîne : supprime les caractères de contrôle invisibles,
+  // normalise les espaces multiples et borne la longueur.
+  function sanitize(str, maxLen) {
+    if (str == null) return '';
+    let s = String(str)
+      // retire les caractères de contrôle (sauf \n et \t)
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+      // retire les caractères de direction/zero-width souvent utilisés pour spoofer
+      .replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '')
+      .replace(/[ \t]{3,}/g, '  ')   // limite les longues suites d'espaces
+      .replace(/\n{4,}/g, '\n\n\n'); // limite les sauts de ligne en rafale
+    if (maxLen && s.length > maxLen) s = s.slice(0, maxLen);
+    return s;
+  }
+
+  // Renvoie true si l'envoi doit être bloqué par une protection.
+  // Affiche un message adapté le cas échéant.
+  function isBlockedByProtection() {
+    // 1) Honeypot rempli → c'est un bot. On simule un succès silencieux
+    //    pour ne pas lui indiquer qu'il a été détecté.
+    if (PROTECT.hp && PROTECT.hp.value.trim() !== '') {
+      console.warn('🤖 Honeypot déclenché — soumission ignorée.');
+      return 'silent';
+    }
+
+    // 2) Formulaire soumis trop vite → comportement de bot.
+    if (Date.now() - PROTECT.loadedAt < PROTECT.minDelayMs) {
+      showAlert(
+        'Doucement 🙂',
+        'Prends le temps de bien remplir le formulaire avant de l\'envoyer.'
+      );
+      return 'too-fast';
+    }
+
+    // 3) Cooldown anti-spam entre deux envois.
+    try {
+      const last = Number(sessionStorage.getItem(PROTECT.COOLDOWN_KEY) || 0);
+      const wait = PROTECT.cooldownMs - (Date.now() - last);
+      if (last && wait > 0) {
+        const sec = Math.ceil(wait / 1000);
+        showAlert(
+          'Candidature déjà envoyée',
+          `Tu viens d\'envoyer une candidature. Patiente encore ${sec}s avant d\'en renvoyer une.`
+        );
+        return 'cooldown';
+      }
+    } catch {}
+
+    return false;
+  }
+
+  function markSent() {
+    try { sessionStorage.setItem(PROTECT.COOLDOWN_KEY, String(Date.now())); } catch {}
+  }
+
   // ─── Validation ─────────────────────────────────────────
   function ageFromDob(dobStr) {
     if (!dobStr) return null;
@@ -273,8 +340,8 @@
     const dobFmt = dob.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
     const verified = (window.MorphVerify && window.MorphVerify.getUser()) || null;
     return {
-      pseudo_discord:   fields.discord.value.trim(),
-      pseudo_tiktok:    fields.tiktok.value.trim().replace(/^@/, ''),
+      pseudo_discord:   sanitize(fields.discord.value.trim(), 32),
+      pseudo_tiktok:    sanitize(fields.tiktok.value.trim().replace(/^@/, ''), 24),
       date_naissance:   fields.dob.value,
       date_naissance_fr: dobFmt,
       age:              age,
@@ -282,11 +349,11 @@
       comment_connu:    SELECT_LABELS.knew[fields.knew.value] || fields.knew.value,
       heures_semaine:   Number(fields.hours.value),
       fuseau:           SELECT_LABELS.tz[fields.tz.value] || fields.tz.value,
-      experience:       fields.exp.value.trim(),
-      pourquoi_moderateur:    fields.why_mod.value.trim(),
-      pourquoi_vous_pas_les_autres: fields.why_you.value.trim(),
-      scenario:         fields.scenario.value.trim(),
-      autres_remarques: fields.extra.value.trim() || '(rien)',
+      experience:       sanitize(fields.exp.value.trim(), 800),
+      pourquoi_moderateur:    sanitize(fields.why_mod.value.trim(), 1000),
+      pourquoi_vous_pas_les_autres: sanitize(fields.why_you.value.trim(), 1000),
+      scenario:         sanitize(fields.scenario.value.trim(), 1400),
+      autres_remarques: sanitize(fields.extra.value.trim(), 1000) || '(rien)',
       submitted_at:     new Date().toISOString(),
       submitted_at_fr:  new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' }),
       verified:         verified, // null if verification disabled, else { id, displayName, avatarUrl, ... }
@@ -335,6 +402,10 @@
   // ─── EMAIL via FormSubmit.co ────────────────────────────
   async function submitEmail() {
     hideAlert();
+
+    // 🛡️ Verrou anti double-clic / double-envoi
+    if (PROTECT.sending) return;
+
     if (!validateAll()) return showAlert(
       'Quelques champs ne sont pas remplis',
       'Regarde les champs entourés en rouge plus haut, puis réessaie.'
@@ -347,6 +418,16 @@
       );
     }
 
+    // 🛡️ Protections anti-bot / anti-spam
+    const blocked = isBlockedByProtection();
+    if (blocked === 'silent') {
+      // bot détecté : on feint le succès sans rien envoyer
+      showSuccess('email', collectData());
+      return;
+    }
+    if (blocked) return;
+
+    PROTECT.sending = true;
     setBtnLoading(btnEmail, true, 'Envoi…');
     const d = collectData();
 
@@ -360,6 +441,8 @@
       try {
         await sendToDiscord(d);
         console.log('✅ SUCCÈS: Candidature envoyée via Discord Webhook');
+        markSent();
+        PROTECT.sending = false;
         showSuccess('discord', d);
         return;
       } catch (err) {
@@ -405,11 +488,14 @@
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json.success === 'false') throw new Error(json.message || 'Le serveur a refusé la requête');
       console.log('✅ SUCCÈS: Candidature envoyée via Email');
+      markSent();
+      PROTECT.sending = false;
       showSuccess('email', d);
     } catch (err) {
       console.error('❌ ERREUR Email:', err);
       console.error('📝 Message d\'erreur:', err.message);
       console.error('⚠️ TOUS LES ENVOIS ONT ÉCHOUÉ');
+      PROTECT.sending = false;
       setBtnLoading(btnEmail, false, '');
       showFallback(d, err);
     }
