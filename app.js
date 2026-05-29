@@ -433,11 +433,10 @@
     let pdfBlob = null;
     try { pdfBlob = await buildPdfBlob(d); console.log('📄 PDF généré avec succès'); } catch (e) { console.warn('⚠️ PDF non généré:', e); }
 
+    // 🧩 COMPONENTS V2 ONLY — pas de fallback classic (EmbedBuilder)
     const attempts = [
-      { label: 'V2 + cors',         build: () => buildV2Payload(d, pdfBlob, pdfName),      mode: 'cors' },
-      { label: 'classic + cors',    build: () => buildClassicPayload(d, pdfBlob, pdfName), mode: 'cors' },
-      { label: 'V2 + no-cors',      build: () => buildV2Payload(d, pdfBlob, pdfName),      mode: 'no-cors' },
-      { label: 'classic + no-cors', build: () => buildClassicPayload(d, pdfBlob, pdfName), mode: 'no-cors' },
+      { label: 'Components V2 + CORS',    build: () => buildV2Payload(d, pdfBlob, pdfName), mode: 'cors' },
+      { label: 'Components V2 + no-cors', build: () => buildV2Payload(d, pdfBlob, pdfName), mode: 'no-cors' },
     ];
 
     let lastErr = null;
@@ -452,8 +451,8 @@
         lastErr = err;
       }
     }
-    console.error('🔴 TOUTES LES TENTATIVES D\'ENVOI DISCORD ONT ÉCHOUÉ');
-    throw lastErr || new Error('All Discord send attempts failed');
+    console.error('🔴 LES TENTATIVES COMPONENTS V2 ONT ÉCHOUÉ');
+    throw lastErr || new Error('All Discord V2 send attempts failed');
   }
 
   function buildV2Payload(d, pdfBlob, pdfName) {
