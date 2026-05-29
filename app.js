@@ -542,9 +542,15 @@
   }
 
   function buildV2Payload(d, pdfBlob, pdfName) {
-    // 🧩 COMPONENTS V2 — affichage riche avec FileBuilder intégré au container
-    // Voir: https://discord.com/developers/docs/components/display-components
-    
+    // 🧩 COMPONENTS V2 — affichage riche avec File component intégré au container
+    // Voir: https://discord.com/developers/docs/components/reference
+    //
+    // ⚠️ Deux contraintes strictes des Components V2 :
+    //   1. Le composant File (type 13) attend un objet imbriqué `file: { url }`
+    //      — PAS une propriété `url` au premier niveau (sinon HTTP 400).
+    //   2. La somme du texte de TOUS les Text Display ne doit pas dépasser
+    //      4000 caractères cumulés (sinon HTTP 400). On tronque + on borne.
+
     const tr = (s, max) => {
       if (!s || s === '(rien)') return s || '—';
       return s.length <= max ? s : s.slice(0, max - 1) + '…';
@@ -599,38 +605,40 @@
     });
 
     // ── Experience ────────────────────────
+    // Limites volontairement basses pour rester sous les 4000 car. cumulés.
+    // Le PDF joint contient TOUJOURS le texte complet, donc tronquer ici est sans risque.
     innerComponents.push({ type: 14, divider: true, spacing: 1 });
     innerComponents.push({
       type: 10,
-      content: `### 📜 Expérience en modération\n${code(tr(d.experience, 800))}`,
+      content: `### 📜 Expérience en modération\n${code(tr(d.experience, 550))}`,
     });
 
     // ── Pourquoi modérateur ───────────────
     innerComponents.push({ type: 14, divider: true, spacing: 1 });
     innerComponents.push({
       type: 10,
-      content: `### 🛡️ Pourquoi modérateur ?\n${code(tr(d.pourquoi_moderateur, 800))}`,
+      content: `### 🛡️ Pourquoi modérateur ?\n${code(tr(d.pourquoi_moderateur, 600))}`,
     });
 
     // ── Pourquoi toi ──────────────────────
     innerComponents.push({ type: 14, divider: true, spacing: 1 });
     innerComponents.push({
       type: 10,
-      content: `### ⭐ Pourquoi toi et pas les autres ?\n${code(tr(d.pourquoi_vous_pas_les_autres, 800))}`,
+      content: `### ⭐ Pourquoi toi et pas les autres ?\n${code(tr(d.pourquoi_vous_pas_les_autres, 600))}`,
     });
 
     // ── Mise en situation ──────────────────
     innerComponents.push({ type: 14, divider: true, spacing: 1 });
     innerComponents.push({
       type: 10,
-      content: `### 🎬 Mise en situation\n${code(tr(d.scenario, 900))}`,
+      content: `### 🎬 Mise en situation\n${code(tr(d.scenario, 700))}`,
     });
 
     // ── Autres remarques ───────────────────
     innerComponents.push({ type: 14, divider: true, spacing: 1 });
     const remarques = d.autres_remarques === '(rien)' 
       ? '*(aucune remarque)*'
-      : code(tr(d.autres_remarques, 500));
+      : code(tr(d.autres_remarques, 450));
     innerComponents.push({
       type: 10,
       content: `### 💬 Autres remarques\n${remarques}`,
@@ -640,15 +648,23 @@
     innerComponents.push({ type: 14, divider: true, spacing: 2 });
     innerComponents.push({
       type: 10,
-      content: `-# 🕒 Envoyé le ${d.submitted_at_fr}`,
+      content: `-# 🕒 Envoyé le ${d.submitted_at_fr}\n-# 📎 Candidature complète en pièce jointe (PDF)`,
     });
 
+    // ── 🛡️ GARDE-FOU 4000 CARACTÈRES ──────
+    // Si malgré les troncatures la somme du texte dépasse la limite,
+    // on rogne le plus gros Text Display jusqu'à repasser sous le seuil.
+    enforceTextBudget(innerComponents, 3900);
+
     // ── PDF FILE — INSIDE THE CONTAINER (Components V2) ──
+    // ✅ Structure correcte : objet `file` imbriqué avec `url`,
+    //    et NON une propriété `url` au premier niveau.
     if (pdfBlob) {
       innerComponents.push({ type: 14, divider: true, spacing: 1 });
       innerComponents.push({
         type: 13, // File Display Component
-        url: `attachment://${pdfName}`,
+        file: { url: `attachment://${pdfName}` },
+        spoiler: false,
       });
     }
 
@@ -668,6 +684,27 @@
       ],
       attachments: pdfBlob ? [{ id: 0, filename: pdfName }] : [],
     };
+  }
+
+  // Rogne au besoin le texte cumulé des Text Display (type 10) pour rester
+  // sous la limite Discord de 4000 caractères cumulés des Components V2.
+  function enforceTextBudget(components, budget) {
+    const texts = components.filter((c) => c && c.type === 10 && typeof c.content === 'string');
+    const total = () => texts.reduce((sum, c) => sum + c.content.length, 0);
+    let guard = 0; // évite toute boucle infinie
+    while (total() > budget && guard++ < 200) {
+      // Trouve le plus long Text Display et retire ~80 caractères au bloc de code.
+      let longest = texts[0];
+      for (const c of texts) if (c.content.length > longest.content.length) longest = c;
+      const cut = Math.max(40, Math.ceil((total() - budget) / 2));
+      if (longest.content.endsWith('\n```')) {
+        // tronque l'intérieur du bloc de code en gardant la fermeture ```
+        const body = longest.content.slice(0, -4);
+        longest.content = body.slice(0, Math.max(0, body.length - cut)) + '…\n```';
+      } else {
+        longest.content = longest.content.slice(0, Math.max(0, longest.content.length - cut)) + '…';
+      }
+    }
   }
 
   function buildClassicPayload(d, pdfBlob, pdfName) {
