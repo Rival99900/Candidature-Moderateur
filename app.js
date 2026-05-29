@@ -538,7 +538,6 @@
     if (pdfBlob) {
       const filePayload = {
         username: 'Candidatures Modérateur',
-        content: `📎 **PDF complet — ${d.pseudo_discord}**`,
         allowed_mentions: { parse: [] },
         attachments: [{ id: 0, filename: pdfName }],
       };
